@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>МузБаза — Детская школа искусств им. С.В. Рахманинова</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ivory:#faf8f3; --paper:#fffefb; --ink:#2b2823; --ink-soft:#5c554b;
+  --muted:#948b7c; --gold:#b08d57; --gold-soft:#d9c7a3; --line:#e9e3d8;
+  --danger:#a8574a; --danger-soft:#c98a80;
+  --shadow-sm:0 1px 2px rgba(43,40,35,.04), 0 6px 18px rgba(43,40,35,.05);
+  --shadow-lg:0 2px 6px rgba(43,40,35,.05), 0 18px 44px rgba(43,40,35,.10);
+}
+html,body{height:100%}
+body{font-family:'Jost',system-ui,sans-serif;background:radial-gradient(circle at 12% 8%,#fffdf8 0%,transparent 45%),radial-gradient(circle at 88% 92%,#f6f0e5 0%,transparent 50%),var(--ivory);color:var(--ink);-webkit-font-smoothing:antialiased;font-weight:300;letter-spacing:.01em}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+button:disabled{cursor:not-allowed}
+::selection{background:var(--gold-soft);color:var(--ink)}
+
+.login-screen{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:24px;transition:opacity .6s,visibility .6s}
+.login-screen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.login-staff{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:.5}
+.login-staff::before{content:'';position:absolute;left:-10%;right:-10%;top:50%;height:120px;transform:translateY(-50%);background:repeating-linear-gradient(to bottom,transparent 0 22px,rgba(176,141,87,.16) 22px 23px);mask-image:radial-gradient(ellipse at center,#000 20%,transparent 75%);-webkit-mask-image:radial-gradient(ellipse at center,#000 20%,transparent 75%)}
+.login-staff .clef-bg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:'Cormorant Garamond',serif;font-size:min(58vw,620px);line-height:1;color:rgba(176,141,87,.055);user-select:none}
+.login-card{position:relative;width:min(440px,100%);background:linear-gradient(175deg,#fffefb 0%,#fdfaf4 100%);border:1px solid var(--line);border-radius:20px;padding:52px 44px 40px;text-align:center;box-shadow:var(--shadow-lg);animation:riseIn .8s cubic-bezier(.22,1,.36,1) both}
+@keyframes riseIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.login-clef{width:74px;height:74px;margin:0 auto 22px;border-radius:50%;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:40px;line-height:1;color:var(--gold);background:linear-gradient(160deg,#fffdf8,#f6f0e3);border:1px solid var(--gold-soft);box-shadow:0 0 0 6px rgba(217,199,163,.16);animation:clefPulse 3.6s ease-in-out infinite}
+@keyframes clefPulse{0%,100%{box-shadow:0 0 0 6px rgba(217,199,163,.16);transform:translateY(0)}50%{box-shadow:0 0 0 12px rgba(217,199,163,.06);transform:translateY(-3px)}}
+.login-card h1{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:500;letter-spacing:.18em;text-transform:uppercase}
+.login-card .sub{margin-top:12px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);line-height:1.7;max-width:340px;margin-left:auto;margin-right:auto}
+.divider{display:flex;align-items:center;gap:12px;margin:26px 0 24px;color:var(--gold-soft)}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--line)}
+.divider span{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold)}
+.login-form{display:flex;flex-direction:column;gap:14px}
+.field-input{width:100%;padding:14px 16px;background:#fff;border:1px solid var(--line);border-radius:11px;outline:none;transition:border-color .25s,box-shadow .25s;font-weight:300}
+.field-input:focus{border-color:var(--gold-soft);box-shadow:0 0 0 4px rgba(217,199,163,.22)}
+.btn-login{margin-top:8px;padding:15px;border-radius:11px;background:var(--ink);color:#fdfaf3;font-size:12px;letter-spacing:.24em;text-transform:uppercase;font-weight:400;transition:background .3s,transform .2s,letter-spacing .3s}
+.btn-login:hover{background:var(--gold);letter-spacing:.3em}
+.login-error{min-height:16px;font-size:12.5px;color:var(--danger);letter-spacing:.04em;line-height:1.4}
+.hint{margin-top:22px;font-size:11.5px;letter-spacing:.14em;color:var(--muted)}
+.shake{animation:shake .45s cubic-bezier(.36,.07,.19,.97)}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+
+.app{display:none;min-height:100vh;flex-direction:column}
+.app.visible{display:flex}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 40px;background:rgba(250,248,243,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:15px;min-width:0}
+.brand-mark{width:46px;height:46px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:26px;line-height:1;color:var(--gold);background:linear-gradient(160deg,#fffdf8,#f5efe2);border:1px solid var(--gold-soft);transition:transform .6s cubic-bezier(.34,1.56,.64,1)}
+.brand:hover .brand-mark{transform:rotate(360deg)}
+.brand-text h1{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;white-space:nowrap}
+.brand-text p{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.user-chip{display:flex;align-items:center;gap:11px;padding:6px 16px 6px 6px;border:1px solid var(--line);border-radius:100px;background:rgba(255,254,251,.7)}
+.user-avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(160deg,#f4ecdd,#e8dcc4);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:17px}
+.user-name{font-size:13.5px;letter-spacing:.04em;color:var(--ink-soft);white-space:nowrap}
+.btn-logout{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);color:var(--muted);transition:.25s}
+.btn-logout:hover{border-color:var(--gold-soft);color:var(--gold);background:#fff;transform:rotate(-8deg)}
+
+.layout{flex:1;width:100%;max-width:1420px;margin:0 auto;display:grid;grid-template-columns:250px 1fr;padding:34px 40px 140px}
+.side-nav{position:relative;display:flex;flex-direction:column;gap:6px;padding-right:28px;border-right:1px solid var(--line);align-self:start;position:sticky;top:110px;overflow:hidden}
+.nav-label{position:relative;z-index:1;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);padding:0 14px 12px}
+.nav-item{position:relative;z-index:1;display:flex;align-items:center;gap:13px;padding:12px 14px;border-radius:11px;color:var(--ink-soft);font-size:14.5px;letter-spacing:.03em;text-align:left;overflow:hidden;transition:background .28s,color .28s,transform .35s cubic-bezier(.34,1.56,.64,1)}
+.nav-item::before{content:'';position:absolute;left:0;top:50%;width:3px;height:0;background:linear-gradient(180deg,var(--gold-soft),var(--gold));border-radius:0 3px 3px 0;transform:translateY(-50%);transition:height .35s cubic-bezier(.22,1,.36,1)}
+.nav-item:hover{background:#f6f1e6;color:var(--ink);transform:translateX(4px)}
+.nav-item:hover::before{height:55%}
+.nav-item.active{background:linear-gradient(90deg,#f6f1e6 0%,#f2ead9 100%);color:var(--ink);box-shadow:0 4px 14px rgba(176,141,87,.12)}
+.nav-item.active::before{height:70%}
+.nav-item svg{width:17px;height:17px;flex:0 0 auto;opacity:.75}
+.nav-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-count{font-size:11px;color:var(--muted);background:rgba(233,227,216,.55);padding:2px 8px;border-radius:100px}
+.nav-item.active .nav-count{background:rgba(217,199,163,.5);color:#7a5f31}
+
+.content{padding-left:38px;min-width:0}
+.content-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:30px}
+.content-head h2{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:400;letter-spacing:.05em}
+.content-head .count{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.search{position:relative}
+.search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted);pointer-events:none}
+.search input{width:250px;padding:12px 16px 12px 40px;border:1px solid var(--line);border-radius:100px;background:rgba(255,254,251,.8);outline:none;transition:border-color .25s,box-shadow .25s,width .3s;font-weight:300}
+.search input:focus{border-color:var(--gold-soft);box-shadow:0 0 0 4px rgba(217,199,163,.2)}
+.btn-primary{display:inline-flex;align-items:center;gap:9px;padding:13px 24px;border-radius:100px;background:var(--ink);color:#fdfaf3;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;transition:background .28s,letter-spacing .28s,transform .2s;white-space:nowrap}
+.btn-primary:hover{background:var(--gold);letter-spacing:.26em}
+.btn-primary svg{width:14px;height:14px}
+.btn-primary:disabled{opacity:.65}
+.btn-primary.loading{background:var(--gold)}
+.btn-primary.loading svg{display:none}
+.btn-primary.loading .spinner{display:inline-block}
+.btn-primary .spinner{display:none;width:14px;height:14px;border:2px solid rgba(253,250,243,.35);border-top-color:#fdfaf3;border-radius:50%;animation:spin .8s linear infinite;flex:0 0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:26px}
+.card{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s,border-color .35s;animation:cardIn .5s cubic-bezier(.22,1,.36,1) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--gold-soft)}
+.card-preview{position:relative;aspect-ratio:4/3;display:grid;place-items:center;background:linear-gradient(180deg,#fffdf9 0%,#f7f2e8 100%);border-bottom:1px solid var(--line);overflow:hidden}
+.card-preview>svg,.card-preview>img{width:100%;height:100%;display:block;object-fit:cover;object-position:center top}
+.card-thumb{background:linear-gradient(180deg,#fffdf9 0%,#f7f2e8 100%)}
+.card-delete{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(255,254,251,.95);border:1px solid var(--line);color:var(--muted);opacity:0;transform:translateY(-6px) scale(.85);transition:.3s;z-index:3}
+.card:hover .card-delete{opacity:1;transform:none}
+.card-delete:hover{color:var(--danger);border-color:#e2c0b8;background:#fff5f2}
+.card-delete svg{width:14px;height:14px}
+.file-count{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;font-size:10.5px;letter-spacing:.12em;background:rgba(255,254,251,.92);border:1px solid var(--line);color:var(--ink-soft);z-index:2}
+.file-count svg{width:11px;height:11px}
+.play-btn{position:absolute;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:rgba(255,254,251,.93);border:1px solid var(--gold-soft);color:var(--gold);box-shadow:0 6px 18px rgba(43,40,35,.12);transition:transform .28s,background .28s,color .28s;z-index:2}
+.play-btn svg{width:17px;height:17px;margin-left:2px}
+.play-btn:hover{transform:scale(1.09);background:var(--gold);color:#fff;border-color:var(--gold)}
+.play-btn.playing svg{margin-left:0}
+.open-btn{position:absolute;bottom:12px;right:12px;padding:7px 15px;border-radius:100px;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;background:rgba(255,254,251,.92);border:1px solid var(--line);color:var(--ink-soft);opacity:0;transform:translateY(6px);transition:.3s;z-index:2}
+.card:hover .open-btn{opacity:1;transform:none}
+.open-btn:hover{border-color:var(--gold);color:var(--gold)}
+.card-body{padding:17px 18px 15px}
+.card-kind{font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold)}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:500;line-height:1.25;margin-top:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-composer{font-size:13px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:15px;padding-top:13px;border-top:1px solid var(--line)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:100px;font-size:10.5px;letter-spacing:.1em;border:1px solid transparent}
+.badge svg{width:11px;height:11px}
+.badge.public{color:var(--gold);background:rgba(217,199,163,.16);border-color:rgba(217,199,163,.5)}
+.badge.private{color:var(--muted);background:rgba(233,227,216,.4);border-color:var(--line)}
+.card-owner{font-size:11px;color:var(--muted);letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--muted)}
+.empty .clef{font-family:'Cormorant Garamond',serif;font-size:52px;color:var(--gold-soft);line-height:1;display:inline-block}
+.empty p{margin-top:16px;font-size:14px;letter-spacing:.06em}
+
+.player-bar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;align-items:center;gap:22px;padding:14px 40px;background:rgba(255,254,251,.94);backdrop-filter:blur(16px);border-top:1px solid var(--line);box-shadow:0 -8px 30px rgba(43,40,35,.06);transform:translateY(110%);transition:transform .45s cubic-bezier(.22,1,.36,1)}
+.player-bar.visible{transform:translateY(0)}
+.player-info{display:flex;align-items:center;gap:14px;min-width:0;flex:0 0 auto;max-width:280px}
+.player-clef{width:42px;height:42px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);background:linear-gradient(160deg,#fffdf8,#f4ecdd);border:1px solid var(--gold-soft)}
+.player-meta h4{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.player-meta p{font-size:11.5px;color:var(--muted);margin-top:1px}
+.player-controls{display:flex;align-items:center;gap:14px;flex:1;min-width:0}
+.btn-play{width:44px;height:44px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:#fdfaf3;transition:background .25s,transform .2s}
+.btn-play svg{width:15px;height:15px}
+.btn-play:hover{background:var(--gold)}
+.progress-wrap{flex:1;min-width:0;display:flex;align-items:center;gap:13px}
+.progress{flex:1;height:4px;border-radius:100px;background:var(--line);cursor:pointer;position:relative}
+.progress-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--gold-soft),var(--gold));width:0%;transition:width .18s linear}
+.time{font-size:11.5px;color:var(--muted);letter-spacing:.08em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.btn-close-player{width:36px;height:36px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;color:var(--muted);transition:.25s}
+.btn-close-player:hover{color:var(--ink);background:#f4efe5}
+.btn-close-player svg{width:14px;height:14px}
+
+.modal-backdrop{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:24px;background:rgba(43,40,35,.32);backdrop-filter:blur(6px);opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
+.modal-backdrop.visible{opacity:1;visibility:visible}
+.modal{width:min(560px,100%);max-height:90vh;overflow-y:auto;background:linear-gradient(175deg,#fffefb,#fdfaf4);border:1px solid var(--line);border-radius:20px;padding:36px 38px 32px;box-shadow:var(--shadow-lg);transform:translateY(16px) scale(.98);transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.modal-backdrop.visible .modal{transform:none}
+.modal h2{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;letter-spacing:.04em}
+.modal-sub{font-size:12.5px;color:var(--muted);margin-top:6px;letter-spacing:.05em}
+.modal form{display:flex;flex-direction:column;gap:16px;margin-top:26px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field>span{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
+.field input,.field select{padding:12px 15px;border:1px solid var(--line);border-radius:11px;background:#fff;outline:none;transition:border-color .25s,box-shadow .25s;font-weight:300}
+.field input:focus,.field select:focus{border-color:var(--gold-soft);box-shadow:0 0 0 4px rgba(217,199,163,.2)}
+.field input[type=file]{padding:10px 13px;font-size:13px;color:var(--ink-soft)}
+.field input[type=file]::file-selector-button{margin-right:12px;padding:7px 15px;border:1px solid var(--line);border-radius:100px;background:#fff;color:var(--ink-soft);font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:.25s}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field-hint{font-size:11px;color:var(--muted);letter-spacing:.04em;line-height:1.5}
+.modal-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:10px;flex-wrap:wrap}
+.btn-ghost{padding:12px 22px;border-radius:100px;border:1px solid var(--line);color:var(--ink-soft);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;transition:.25s}
+.btn-ghost:hover{border-color:var(--gold-soft);color:var(--gold)}
+.btn-ghost:disabled{opacity:.5}
+.btn-danger{padding:12px 22px;border-radius:100px;background:var(--danger);color:#fff;font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;transition:background .25s,transform .2s}
+.btn-danger:hover{background:#8e4538}
+.file-previews{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.file-chip{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border:1px solid var(--line);border-radius:100px;background:#fff;font-size:11.5px;color:var(--ink-soft);max-width:100%}
+.file-chip img{width:26px;height:26px;border-radius:50%;object-fit:cover;flex:0 0 auto}
+.file-chip .pdf-mini{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(160deg,#fdfaf0,#ece2cc);font-size:9px;letter-spacing:.1em;color:var(--gold);font-weight:500;flex:0 0 auto}
+
+/* Прогресс загрузки в модалке */
+.upload-progress{margin-top:4px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:rgba(255,254,251,.8)}
+.upload-progress[hidden]{display:none}
+.upload-progress-bar{height:6px;border-radius:100px;background:var(--line);overflow:hidden}
+.upload-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold-soft),var(--gold));transition:width .2s ease}
+.upload-progress-text{margin-top:9px;font-size:12px;color:var(--ink-soft);letter-spacing:.03em;line-height:1.45;word-break:break-word}
+.upload-progress-text.error{color:var(--danger)}
+.upload-progress-hint{margin-top:6px;font-size:10.5px;color:var(--muted);line-height:1.45}
+
+.toast-wrap{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);z-index:180;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.toast{display:flex;align-items:center;gap:12px;padding:13px 22px 13px 18px;background:var(--ink);color:#fdfaf3;border-radius:100px;font-size:13px;letter-spacing:.04em;box-shadow:0 12px 32px rgba(43,40,35,.28);animation:toastIn .45s cubic-bezier(.34,1.56,.64,1) both}
+.toast.out{animation:toastOut .35s ease forwards}
+@keyframes toastIn{from{opacity:0;transform:translateY(14px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes toastOut{to{opacity:0;transform:translateY(-8px) scale(.94)}}
+
+.admin-panel{display:none;margin-top:20px;padding:20px;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+.admin-panel.visible{display:block}
+.admin-panel h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;margin-bottom:12px}
+.user-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.user-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.user-row .login{font-weight:400;letter-spacing:.05em}
+.user-row .actions{display:flex;gap:8px}
+.btn-sm{padding:6px 14px;border-radius:100px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);transition:.2s}
+.btn-sm.danger{color:var(--danger);border-color:#ecd0c9}
+.btn-sm.danger:hover{background:#fff5f2}
+.btn-sm:hover{border-color:var(--gold-soft);color:var(--gold)}
+
+@media (max-width:1080px){
+  .layout{grid-template-columns:1fr;padding:26px 26px 150px}
+  .side-nav{position:static;flex-direction:row;flex-wrap:wrap;padding:0 0 20px;border-right:none;border-bottom:1px solid var(--line);margin-bottom:26px;gap:8px}
+  .nav-label{display:none}
+  .content{padding-left:0}
+}
+@media (max-width:720px){
+  .topbar{padding:13px 20px}
+  .brand-text p{display:none}
+  .user-name{display:none}
+  .layout{padding:20px 20px 170px}
+  .content-head h2{font-size:26px}
+  .search input{width:100%}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:18px}
+  .player-bar{padding:12px 18px;gap:14px;flex-wrap:wrap}
+  .modal{padding:28px 22px}
+  .field-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="login-screen" id="loginScreen">
+  <div class="login-staff"><span class="clef-bg">𝄞</span></div>
+  <div class="login-card" id="loginCard">
+    <div class="login-clef">𝄞</div>
+    <h1>МузБаза</h1>
+    <p class="sub">Детская школа искусств<br>им. С.В. Рахманинова</p>
+    <div class="divider"><span>❦</span></div>
+    <form class="login-form" id="loginForm" autocomplete="off">
+      <input class="field-input" id="loginUser" type="text" placeholder="Логин" autocomplete="username">
+      <input class="field-input" id="loginPass" type="password" placeholder="Пароль" autocomplete="current-password">
+      <div class="login-error" id="loginError"></div>
+      <button class="btn-login" type="submit">Войти</button>
+    </form>
+    <p class="hint">Войдите в свою учётную запись</p>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">𝄞</div>
+      <div class="brand-text">
+        <h1>МузБаза</h1>
+        <p>Детская школа искусств им. С.В. Рахманинова</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <div class="user-avatar" id="userAvatar">О</div>
+        <span class="user-name" id="userName">—</span>
+      </div>
+      <button class="btn-logout" id="logoutBtn" title="Выйти">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="side-nav">
+      <div class="nav-label">Библиотека</div>
+      <button class="nav-item active" data-filter="all">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span class="nav-text">Все материалы</span><span class="nav-count" id="countAll">0</span>
+      </button>
+      <button class="nav-item" data-filter="sheet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        <span class="nav-text">Ноты</span><span class="nav-count" id="countSheet">0</span>
+      </button>
+      <button class="nav-item" data-filter="audio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+        <span class="nav-text">Аудиозаписи</span><span class="nav-count" id="countAudio">0</span>
+      </button>
+      <button class="nav-item" data-filter="public">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span class="nav-text">Публичные</span><span class="nav-count" id="countPublic">0</span>
+      </button>
+      <button class="nav-item" data-filter="private">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span class="nav-text">Личные</span><span class="nav-count" id="countPrivate">0</span>
+      </button>
+      <button class="nav-item" id="adminToggle" style="display:none; margin-top:10px; color:var(--gold);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-text">Пользователи</span>
+      </button>
+    </nav>
+
+    <section class="content">
+      <div class="content-head">
+        <div>
+          <h2 id="pageTitle">Все материалы</h2>
+          <div class="count" id="pageCount">0 записей</div>
+        </div>
+        <div class="toolbar">
+          <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchInput" placeholder="Поиск по названию или автору…">
+          </div>
+          <button class="btn-primary" id="openUpload">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Добавить
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="adminPanel">
+        <h3>Пользователи</h3>
+        <p class="modal-sub">Создание учётки = создание папки <b>Логин:Пароль</b> в папке приложения на Диске.</p>
+        <form id="createUserForm" style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+          <input class="field-input" id="newLogin" placeholder="Логин" required style="flex:1;min-width:120px;">
+          <input class="field-input" id="newPass" placeholder="Пароль" required style="flex:1;min-width:120px;">
+          <button type="submit" class="btn-primary" style="padding:13px 20px;">Создать</button>
+        </form>
+        <div class="user-list" id="userList"></div>
+      </div>
+
+      <div class="grid" id="grid"></div>
+    </section>
+  </div>
+
+  <div class="player-bar" id="playerBar">
+    <div class="player-info">
+      <div class="player-clef">𝄞</div>
+      <div class="player-meta">
+        <h4 id="playerTitle">—</h4>
+        <p id="playerComposer">—</p>
+      </div>
+    </div>
+    <div class="player-controls">
+      <button class="btn-play" id="playerToggle"></button>
+      <div class="progress-wrap">
+        <span class="time" id="playerCurrent">0:00</span>
+        <div class="progress" id="progressTrack"><div class="progress-fill" id="progressFill"></div></div>
+        <span class="time" id="playerDuration">0:00</span>
+      </div>
+      <button class="btn-close-player" id="playerClose" title="Закрыть">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="uploadModal">
+  <div class="modal">
+    <h2>Добавить материал</h2>
+    <p class="modal-sub">Файлы сохраняются в вашу папку внутри папки приложения</p>
+    <form id="uploadForm">
+      <label class="field"><span>Название</span><input type="text" id="upTitle" placeholder="Например: Этюд op. 10 № 3" required></label>
+      <label class="field"><span>Композитор</span><input type="text" id="upComposer" placeholder="Ф. Шопен"></label>
+      <div class="field-row">
+        <label class="field"><span>Тип материала</span>
+          <select id="upType"><option value="sheet">Ноты (фото / PDF)</option><option value="audio">Аудиозапись</option></select>
+        </label>
+        <label class="field"><span>Доступ</span>
+          <select id="upVisibility"><option value="public">Публичный</option><option value="private">Личный</option></select>
+        </label>
+      </div>
+      <label class="field"><span>Файлы</span>
+        <input type="file" id="upFile" multiple accept="image/*,application/pdf,audio/*,.pdf">
+        <span class="field-hint">Можно выбрать несколько файлов — все станут одной папкой материала.</span>
+      </label>
+      <div class="file-previews" id="filePreviews"></div>
+
+      <!-- Прогресс загрузки -->
+      <div class="upload-progress" id="uploadProgress" hidden>
+        <div class="upload-progress-bar"><div class="upload-progress-fill" id="uploadProgressFill"></div></div>
+        <div class="upload-progress-text" id="uploadProgressText">Загрузка…</div>
+        <div class="upload-progress-hint" id="uploadProgressHint"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="cancelUpload">Отмена</button>
+        <button type="submit" class="btn-primary" id="uploadSubmitBtn">
+          <span class="spinner"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span class="btn-label">Добавить</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="deleteModal">
+  <div class="modal delete-modal" id="deleteModalBox">
+    <div class="del-step" data-step="1">
+      <h2>Удалить материал?</h2>
+      <p class="del-name" id="delName1">—</p>
+      <p class="del-warn-text">Файл будет удалён из папки приложения на Яндекс.Диске.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" data-del="cancel">Отмена</button>
+        <button type="button" class="btn-danger" data-del="next">Да, удалить</button>
+      </div>
+    </div>
+    <div class="del-step" data-step="2" hidden>
+      <h2>Вы абсолютно уверены?</h2>
+      <p class="del-name" id="delName2">—</p>
+      <p class="del-warn-text"><b style="color:var(--danger)">Это действие нельзя отменить.</b></p>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" data-del="back">Вернуться</button>
+        <button type="button" class="btn-danger" data-del="confirm">Удалить навсегда</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ==========================================================
+   1. ТОКЕН И КОНСТАНТЫ
+   ========================================================== */
+const YANDEX_API = 'https://cloud-api.yandex.net/v1/disk';
+
+let YANDEX_TOKEN = 'y0__wgBEJSXzeAHGJDAUCCtwZnqGTC1z4v0B9KZTpYvNQCBHHGazoPm2dUEAWZE';
+
+const APP_ROOT = 'app:/';
+const AUTH_FILE_NAME = '_muzbase_auth.json';
+const META_FILE_NAME = '_meta.json';
+const URL_TTL_MS = 25 * 60 * 1000;
+const UPLOAD_TIMEOUT_MS = 5 * 60 * 1000; // 5 минут на файл
+
+const urlCache = new Map();
+
+const ICON = {
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="5" width="3.6" height="14" rx="1"/><rect x="13.4" y="5" width="3.6" height="14" rx="1"/></svg>',
+  globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>',
+  pages: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="4" y="3" width="12" height="16" rx="2"/><path d="M20 7v12a2 2 0 0 1-2 2H8"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>'
+};
+
+/* ==========================================================
+   2. УТИЛИТЫ
+   ========================================================== */
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fileKind(file){
+  const name = (file.name || '').toLowerCase();
+  if (file.type && file.type.startsWith('image/')) return 'image';
+  if (file.type === 'application/pdf' || name.endsWith('.pdf')) return 'pdf';
+  if (file.type && file.type.startsWith('audio/')) return 'audio';
+  return 'other';
+}
+function plural(n, one, few, many){
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
+  return many;
+}
+function humanSize(bytes){
+  if (!bytes) return '0 Б';
+  const k = 1024, u = ['Б','КБ','МБ','ГБ'];
+  const i = Math.min(u.length - 1, Math.floor(Math.log(bytes) / Math.log(k)));
+  return (bytes / Math.pow(k, i)).toFixed(i ? 1 : 0) + ' ' + u[i];
+}
+function showToast(text){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span class="toast-clef">𝄞</span><span>${esc(text)}</span>`;
+  wrap.appendChild(el);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 400); }, 3000);
+}
+
+/* ==========================================================
+   3. ЯНДЕКС.ДИСК
+   ========================================================== */
+function yandexHeaders(extra = {}){
+  return {
+    'Authorization': `OAuth ${YANDEX_TOKEN}`,
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    ...extra
+  };
+}
+async function yandexFetch(url, options = {}){
+  const res = await fetch(url, { ...options, headers: yandexHeaders(options.headers || {}) });
+  if (!res.ok){
+    const txt = await res.text();
+    let msg = `Яндекс.Диск ${res.status}`;
+    try {
+      const j = JSON.parse(txt);
+      msg += `: ${j.description || j.error || txt}`;
+    } catch { msg += `: ${txt.slice(0, 200)}`; }
+    if (res.status === 403) msg += ' — проверьте scope cloud_api:disk.app_folder у токена';
+    throw new Error(msg);
+  }
+  return res;
+}
+async function yandexGetMeta(path){
+  const res = await yandexFetch(`${YANDEX_API}/resources?path=${encodeURIComponent(path)}`);
+  return res.json();
+}
+async function yandexListFolder(path){
+  const meta = await yandexGetMeta(path);
+  return (meta._embedded && meta._embedded.items) || [];
+}
+async function yandexCreateFolder(path){
+  try {
+    await yandexFetch(`${YANDEX_API}/resources?path=${encodeURIComponent(path)}`, { method: 'PUT' });
+  } catch (e){
+    if (!/409/.test(e.message)) throw e;
+  }
+}
+async function yandexDelete(path){
+  await yandexFetch(`${YANDEX_API}/resources?path=${encodeURIComponent(path)}&permanently=true`, { method: 'DELETE' });
+}
+async function yandexDownloadUrl(path){
+  const res = await yandexFetch(`${YANDEX_API}/resources/download?path=${encodeURIComponent(path)}`);
+  const data = await res.json();
+  if (!data.href) throw new Error('Нет ссылки на скачивание');
+  return data.href;
+}
+async function getCachedUrl(path){
+  const now = Date.now();
+  const cached = urlCache.get(path);
+  if (cached && cached.expires > now) return cached.url;
+  const url = await yandexDownloadUrl(path);
+  urlCache.set(path, { url, expires: now + URL_TTL_MS });
+  return url;
+}
+
+/* Простая загрузка (для маленьких служебных файлов: auth, meta) */
+async function yandexUploadFile(diskPath, fileBlob){
+  const res = await yandexFetch(`${YANDEX_API}/resources/upload?path=${encodeURIComponent(diskPath)}&overwrite=true`);
+  const data = await res.json();
+  if (!data.href) throw new Error('Не удалось получить upload-URL');
+  const uploadRes = await fetch(data.href, { method: 'PUT', body: fileBlob });
+  if (!uploadRes.ok) throw new Error(`Ошибка загрузки: ${uploadRes.status}`);
+}
+
+/* Загрузка с прогрессом (XHR, реальные байты) */
+async function yandexUploadFileWithProgress(diskPath, fileBlob, onProgress){
+  const res = await yandexFetch(`${YANDEX_API}/resources/upload?path=${encodeURIComponent(diskPath)}&overwrite=true`);
+  const data = await res.json();
+  if (!data.href) throw new Error('Не удалось получить upload-URL');
+
+  await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', data.href, true);
+    xhr.timeout = UPLOAD_TIMEOUT_MS;
+
+    xhr.upload.onprogress = (ev) => {
+      if (ev.lengthComputable && onProgress) onProgress(ev.loaded / ev.total, ev.loaded, ev.total);
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(new Error(`HTTP ${xhr.status} при загрузке файла`));
+    };
+    xhr.onerror = () => reject(new Error('Не удалось загрузить файл (CORS или сеть). Скорее всего нужен серверный прокси.'));
+    xhr.ontimeout = () => reject(new Error('Таймаут загрузки (файл слишком большой или соединение прервано)'));
+    xhr.send(fileBlob);
+  });
+}
+
+/* ==========================================================
+   4. МЕТАДАННЫЕ
+   ========================================================== */
+async function saveItemMeta(folderPath, meta){
+  try {
+    const blob = new Blob([JSON.stringify(meta, null, 2)], { type: 'application/json' });
+    await yandexUploadFile(`${folderPath}/${META_FILE_NAME}`, blob);
+  } catch (e){
+    console.warn('meta не сохранён:', e.message);
+  }
+}
+async function loadItemMeta(folderPath){
+  try {
+    const url = await getCachedUrl(`${folderPath}/${META_FILE_NAME}`);
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch {
+    return null;
+  }
+}
+
+/* ==========================================================
+   5. ПОЛЬЗОВАТЕЛИ
+   ========================================================== */
+let currentUser = null;
+
+async function loginYandex(login, pass){
+  const folderPath = `${APP_ROOT}${login}:${pass}`;
+  let folderExists = false;
+
+  try {
+    const meta = await yandexGetMeta(folderPath);
+    folderExists = meta.type === 'dir';
+  } catch (e){
+    if (!/404/.test(e.message)) throw e;
+  }
+  if (!folderExists) await yandexCreateFolder(folderPath);
+
+  let isAdmin = (login === 'admin' && pass === 'admin');
+  if (!isAdmin){
+    try {
+      const dlUrl = await getCachedUrl(`${folderPath}/${AUTH_FILE_NAME}`);
+      const r = await fetch(dlUrl);
+      const data = await r.json();
+      if (data && data.isAdmin === true) isAdmin = true;
+    } catch (e){ /* нет auth */ }
+  }
+  if (!folderExists || (login === 'admin' && pass === 'admin')){
+    try {
+      const blob = new Blob([JSON.stringify({ login, pass, isAdmin, createdAt: new Date().toISOString() })], { type: 'application/json' });
+      await yandexUploadFile(`${folderPath}/${AUTH_FILE_NAME}`, blob);
+    } catch (e){ console.warn('auth-файл не сохранён:', e.message); }
+  }
+  currentUser = { login, pass, isAdmin, folderPath };
+  return currentUser;
+}
+
+async function adminListUsers(){
+  const items = await yandexListFolder(APP_ROOT);
+  return items
+    .filter(it => it.type === 'dir' && it.name.includes(':'))
+    .map(it => ({ login: it.name.split(':')[0], folderPath: it.path }));
+}
+async function adminCreateUser(login, pass){
+  const folderPath = `${APP_ROOT}${login}:${pass}`;
+  await yandexCreateFolder(folderPath);
+  try {
+    const blob = new Blob([JSON.stringify({ login, pass, isAdmin: false, createdAt: new Date().toISOString() })], { type: 'application/json' });
+    await yandexUploadFile(`${folderPath}/${AUTH_FILE_NAME}`, blob);
+  } catch (e){ console.warn('auth-файл не сохранён:', e.message); }
+}
+async function adminDeleteUser(folderPath){
+  await yandexDelete(folderPath);
+}
+
+/* ==========================================================
+   6. МАТЕРИАЛЫ
+   ========================================================== */
+let items = [];
+let currentFilter = 'all';
+let searchQuery = '';
+
+function detectKindByPath(path, mime){
+  const lower = (path || '').toLowerCase();
+  if (mime && mime.startsWith('image/')) return 'image';
+  if (mime === 'application/pdf' || lower.endsWith('.pdf')) return 'pdf';
+  if (mime && mime.startsWith('audio/')) return 'audio';
+  if (lower.match(/\.(jpg|jpeg|png|gif|webp)$/)) return 'image';
+  return 'other';
+}
+
+async function loadItemsFromDisk(){
+  if (!currentUser) return;
+  items = [];
+  try {
+    const list = await yandexListFolder(currentUser.folderPath);
+    const materialItems = list.filter(it => !it.name.startsWith('_'));
+
+    const results = await Promise.all(materialItems.map(async it => {
+      if (it.type === 'dir'){
+        const inner = await yandexListFolder(it.path);
+        const realFiles = inner.filter(f => !f.name.startsWith('_'));
+        const files = realFiles.map(f => ({
+          name: f.name,
+          kind: detectKindByPath(f.path, f.mime_type),
+          size: f.size,
+          diskPath: f.path
+        }));
+        const meta = await loadItemMeta(it.path);
+        return {
+          id: it.path,
+          title: (meta && meta.title) || it.name.replace(/_/g, ' '),
+          composer: (meta && meta.composer) || '—',
+          type: (meta && meta.type) || (files.some(f => f.kind === 'audio') ? 'audio' : 'sheet'),
+          visibility: (meta && meta.visibility) || 'private',
+          owner: currentUser.login,
+          files,
+          diskPath: it.path
+        };
+      }
+      return {
+        id: it.path,
+        title: it.name,
+        composer: '—',
+        type: detectKindByPath(it.path, it.mime_type) === 'audio' ? 'audio' : 'sheet',
+        visibility: 'private',
+        owner: currentUser.login,
+        files: [{
+          name: it.name,
+          kind: detectKindByPath(it.path, it.mime_type),
+          size: it.size,
+          diskPath: it.path
+        }],
+        diskPath: it.path
+      };
+    }));
+    items = results;
+  } catch (e){
+    showToast('Не удалось загрузить материалы: ' + e.message);
+  }
+}
+
+/* ==========================================================
+   7. SVG-заглушки
+   ========================================================== */
+function rnd(seed, i){ const x = Math.sin(seed * 9301 + i * 49297) * 233280; return x - Math.floor(x); }
+function sheetPhotoSVG(seed){
+  const r = i => rnd(seed, i);
+  const systems = [18, 50, 82, 114, 146];
+  let draw = '';
+  systems.forEach((y, si) => {
+    for (let i = 0; i < 5; i++) draw += `<line x1="20" y1="${y + i * 4.4}" x2="220" y2="${y + i * 4.4}" stroke="#b5a488" stroke-width="0.55" opacity="0.75"/>`;
+    const n = 4 + Math.floor(r(si * 13) * 4);
+    for (let k = 0; k < n; k++){
+      const x = 28 + (k / n) * 175 + r(si * 7 + k) * 10;
+      const step = Math.floor(r(si * 17 + k) * 9);
+      const noteY = y - 4 + step * 2.2;
+      const stemUp = noteY > y + 8;
+      const sx = stemUp ? x + 3 : x - 3;
+      draw += `<ellipse cx="${x.toFixed(1)}" cy="${noteY.toFixed(1)}" rx="2.9" ry="2.1" fill="#3a352c" opacity="0.85" transform="rotate(-18 ${x.toFixed(1)} ${noteY.toFixed(1)})"/><line x1="${sx.toFixed(1)}" y1="${noteY.toFixed(1)}" x2="${sx.toFixed(1)}" y2="${(stemUp ? noteY - 15 : noteY + 15).toFixed(1)}" stroke="#3a352c" stroke-width="0.85" opacity="0.85"/>`;
+    }
+  });
+  return `<svg viewBox="0 0 240 180" preserveAspectRatio="xMidYMid meet"><defs><linearGradient id="pg${seed}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdfbf2"/><stop offset="0.55" stop-color="#f5eedd"/><stop offset="1" stop-color="#eadfc5"/></linearGradient></defs><rect width="240" height="180" fill="url(#pg${seed})"/>${draw}</svg>`;
+}
+function pdfCoverSVG(seed){
+  return `<svg viewBox="0 0 240 180" preserveAspectRatio="xMidYMid meet"><defs><linearGradient id="pb${seed}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fdfbf2"/><stop offset="1" stop-color="#eee3cd"/></linearGradient></defs><rect width="240" height="180" fill="url(#pb${seed})"/><g transform="translate(120,92)"><rect x="-36" y="-46" width="72" height="92" rx="5" fill="#fffefb" stroke="#d9c7a3" stroke-width="1"/><path d="M26 -46 L36 -36 L26 -36 Z" fill="#e8dcc0" stroke="#d9c7a3" stroke-width="1" stroke-linejoin="round"/><text x="0" y="4" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="22" fill="#b08d57" font-weight="600" letter-spacing="1">PDF</text><text x="0" y="22" text-anchor="middle" font-family="Jost, sans-serif" font-size="7.5" fill="#948b7c" letter-spacing="2.5">ДОКУМЕНТ</text></g></svg>`;
+}
+function waveSVG(seed){
+  let bars = '';
+  const n = 46;
+  for (let i = 0; i < n; i++){
+    const v = Math.abs(Math.sin(i * 0.55 + seed * 1.7)) * Math.abs(Math.cos(i * 0.21 + seed));
+    const h = 6 + v * 46;
+    const y = 55 - h / 2;
+    bars += `<rect x="${i * 5.1 + 5}" y="${y}" width="2.5" height="${h}" rx="1.25" fill="#b08d57" opacity="${0.28 + v * 0.6}"/>`;
+  }
+  return `<svg viewBox="0 0 240 110" preserveAspectRatio="xMidYMid meet">${bars}</svg>`;
+}
+function coverHTML(item){
+  const first = item.files && item.files[0];
+  if (first){
+    if (first.kind === 'image') return `<img class="card-thumb" data-path="${esc(first.diskPath)}" alt="${esc(item.title)}" referrerpolicy="no-referrer">`;
+    if (first.kind === 'pdf') return pdfCoverSVG(item.id.length);
+    if (first.kind === 'audio') return waveSVG(item.id.length);
+  }
+  return item.type === 'audio' ? waveSVG(item.id.length) : sheetPhotoSVG(item.id.length);
+}
+
+/* ==========================================================
+   8. РЕНДЕР
+   ========================================================== */
+const grid = document.getElementById('grid');
+const pageTitle = document.getElementById('pageTitle');
+const pageCount = document.getElementById('pageCount');
+const searchInput = document.getElementById('searchInput');
+const FILTER_TITLES = { all:'Все материалы', sheet:'Ноты', audio:'Аудиозаписи', public:'Публичные', private:'Личные' };
+
+function getFiltered(){
+  let list = items.slice();
+  if (currentFilter === 'sheet' || currentFilter === 'audio') list = list.filter(it => it.type === currentFilter);
+  else if (currentFilter === 'public' || currentFilter === 'private') list = list.filter(it => it.visibility === currentFilter);
+  if (searchQuery){
+    const q = searchQuery.toLowerCase();
+    list = list.filter(it => (it.title + ' ' + (it.composer || '') + ' ' + (it.owner || '')).toLowerCase().includes(q));
+  }
+  return list;
+}
+
+function cardHTML(it){
+  const isAudio = it.type === 'audio';
+  const isPlayingNow = player.currentId === it.id && player.isPlaying;
+  const filesCount = it.files ? it.files.length : 0;
+  return `
+  <article class="card" data-id="${esc(it.id)}">
+    <div class="card-preview">
+      ${coverHTML(it)}
+      ${filesCount > 1 ? `<span class="file-count">${ICON.pages}${filesCount}</span>` : ''}
+      <button class="card-delete" data-action="delete" data-id="${esc(it.id)}" title="Удалить">${ICON.trash}</button>
+      ${isAudio
+        ? `<button class="play-btn ${isPlayingNow ? 'playing' : ''}" data-action="play" data-id="${esc(it.id)}">${isPlayingNow ? ICON.pause : ICON.play}</button>`
+        : `<button class="open-btn" data-action="open" data-id="${esc(it.id)}">Открыть</button>`}
+    </div>
+    <div class="card-body">
+      <span class="card-kind">${isAudio ? 'Аудиозапись' : 'Ноты'}</span>
+      <h3 class="card-title" title="${esc(it.title)}">${esc(it.title)}</h3>
+      <p class="card-composer">${esc(it.composer || '—')}</p>
+      <div class="card-foot">
+        <span class="badge ${it.visibility}">${it.visibility === 'public' ? ICON.globe + ' Публичный' : ICON.lock + ' Личный'}</span>
+        <span class="card-owner">${esc(it.owner || '')}</span>
+      </div>
+    </div>
+  </article>`;
+}
+
+function render(){
+  const list = getFiltered();
+  grid.innerHTML = list.length
+    ? list.map(cardHTML).join('')
+    : `<div class="empty"><div class="clef">𝄞</div><p>Здесь пока ничего нет</p></div>`;
+  pageTitle.textContent = FILTER_TITLES[currentFilter] || 'Материалы';
+  pageCount.textContent = list.length + ' ' + plural(list.length, 'запись', 'записи', 'записей');
+  document.getElementById('countAll').textContent = items.length;
+  document.getElementById('countSheet').textContent = items.filter(i => i.type === 'sheet').length;
+  document.getElementById('countAudio').textContent = items.filter(i => i.type === 'audio').length;
+  document.getElementById('countPublic').textContent = items.filter(i => i.visibility === 'public').length;
+  document.getElementById('countPrivate').textContent = items.filter(i => i.visibility === 'private').length;
+  hydrateCardPreviews();
+}
+
+async function hydrateCardPreviews(){
+  const imgs = grid.querySelectorAll('img.card-thumb[data-path]');
+  await Promise.all(Array.from(imgs).map(async img => {
+    const path = img.dataset.path;
+    if (!path || img.dataset.loaded === '1') return;
+    try {
+      const url = await getCachedUrl(path);
+      img.src = url;
+      img.dataset.loaded = '1';
+      img.onerror = async () => {
+        urlCache.delete(path);
+        try { img.src = await getCachedUrl(path); } catch {}
+      };
+    } catch (e){ console.warn('thumb fail:', path, e.message); }
+  }));
+}
+
+/* ==========================================================
+   9. ПЛЕЕР
+   ========================================================== */
+const player = { currentId: null, isPlaying: false, audio: null, timer: null, simTime: 0, simDuration: 0 };
+const playerBar = document.getElementById('playerBar');
+const playerTitle = document.getElementById('playerTitle');
+const playerComposer = document.getElementById('playerComposer');
+const playerToggle = document.getElementById('playerToggle');
+const playerCurrent = document.getElementById('playerCurrent');
+const playerDuration = document.getElementById('playerDuration');
+const progressTrack = document.getElementById('progressTrack');
+const progressFill = document.getElementById('progressFill');
+
+function fmt(sec){ sec = Math.max(0, Math.floor(sec || 0)); return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
+function setProgress(ratio){ progressFill.style.width = Math.max(0, Math.min(1, ratio)) * 100 + '%'; }
+
+async function playItem(id){
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  if (player.currentId === id && player.isPlaying){ pausePlayback(); return; }
+
+  stopPlayback(true);
+  player.currentId = id;
+  playerTitle.textContent = item.title;
+  playerComposer.textContent = item.composer || '';
+  playerBar.classList.add('visible');
+
+  const audioFile = item.files && item.files.find(f => f.kind === 'audio');
+  if (audioFile && audioFile.diskPath){
+    try {
+      const dlUrl = await getCachedUrl(audioFile.diskPath);
+      player.audio = new Audio(dlUrl);
+      player.audio.addEventListener('loadedmetadata', () => { playerDuration.textContent = fmt(player.audio.duration); });
+      player.audio.addEventListener('timeupdate', () => {
+        setProgress(player.audio.currentTime / (player.audio.duration || 1));
+        playerCurrent.textContent = fmt(player.audio.currentTime);
+      });
+      player.audio.addEventListener('ended', () => stopPlayback());
+      player.audio.play().catch(()=>{});
+      playerDuration.textContent = '0:00';
+      player.isPlaying = true;
+      playerToggle.innerHTML = ICON.pause;
+    } catch (e){ showToast('Не удалось воспроизвести: ' + e.message); return; }
+  } else {
+    player.simDuration = 180; player.simTime = 0;
+    playerDuration.textContent = fmt(player.simDuration);
+    setProgress(0);
+    player.timer = setInterval(() => {
+      player.simTime += 0.25;
+      if (player.simTime >= player.simDuration){ stopPlayback(); return; }
+      setProgress(player.simTime / player.simDuration);
+      playerCurrent.textContent = fmt(player.simTime);
+    }, 250);
+    player.isPlaying = true;
+    playerToggle.innerHTML = ICON.pause;
+  }
+  render();
+}
+function pausePlayback(){
+  player.isPlaying = false;
+  if (player.audio) player.audio.pause();
+  if (player.timer){ clearInterval(player.timer); player.timer = null; }
+  playerToggle.innerHTML = ICON.play;
+  render();
+}
+function stopPlayback(keepBar){
+  player.isPlaying = false;
+  if (player.audio){ player.audio.pause(); player.audio.src = ''; player.audio = null; }
+  if (player.timer){ clearInterval(player.timer); player.timer = null; }
+  playerToggle.innerHTML = ICON.play;
+  if (!keepBar){ player.currentId = null; playerBar.classList.remove('visible'); setProgress(0); playerCurrent.textContent = '0:00'; playerDuration.textContent = '0:00'; }
+  render();
+}
+playerToggle.addEventListener('click', () => { if (!player.currentId) return; if (player.isPlaying) pausePlayback(); else playItem(player.currentId); });
+document.getElementById('playerClose').addEventListener('click', () => stopPlayback(false));
+progressTrack.addEventListener('click', (e) => {
+  const rect = progressTrack.getBoundingClientRect();
+  const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  if (player.audio && player.audio.duration) player.audio.currentTime = ratio * player.audio.duration;
+  else if (player.currentId && player.simDuration){ player.simTime = ratio * player.simDuration; setProgress(ratio); playerCurrent.textContent = fmt(player.simTime); }
+});
+
+/* ==========================================================
+   10. КЛИКИ ПО КАРТОЧКАМ
+   ========================================================== */
+grid.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const action = btn.dataset.action;
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+
+  if (action === 'play') playItem(id);
+  else if (action === 'delete') openDeleteModal(id);
+  else if (action === 'open'){
+    const f = item.files && item.files[0];
+    if (f && f.diskPath){
+      try { window.open(await getCachedUrl(f.diskPath), '_blank'); }
+      catch (err){ showToast('Не удалось открыть: ' + err.message); }
+    } else showToast('Файл недоступен');
+  }
+});
+
+/* ==========================================================
+   11. УДАЛЕНИЕ
+   ========================================================== */
+const deleteModal = document.getElementById('deleteModal');
+const deleteModalBox = document.getElementById('deleteModalBox');
+const delName1 = document.getElementById('delName1');
+const delName2 = document.getElementById('delName2');
+const delSteps = deleteModalBox.querySelectorAll('.del-step');
+let pendingDeleteId = null;
+
+function openDeleteModal(id){
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  pendingDeleteId = id;
+  delName1.textContent = '«' + item.title + '»';
+  delName2.textContent = '«' + item.title + '»';
+  showDeleteStep(1);
+  deleteModal.classList.add('visible');
+}
+function showDeleteStep(n){ delSteps.forEach(s => { s.hidden = Number(s.dataset.step) !== n; }); }
+function closeDeleteModal(){ deleteModal.classList.remove('visible'); pendingDeleteId = null; }
+deleteModalBox.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-del]');
+  if (!btn) return;
+  const act = btn.dataset.del;
+  if (act === 'cancel' || act === 'back'){ if (act === 'back') showDeleteStep(1); else closeDeleteModal(); }
+  else if (act === 'next') showDeleteStep(2);
+  else if (act === 'confirm') performDelete(pendingDeleteId);
+});
+deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) closeDeleteModal(); });
+
+async function performDelete(id){
+  const item = items.find(i => i.id === id);
+  if (!item){ closeDeleteModal(); return; }
+  if (player.currentId === id) stopPlayback(false);
+  try {
+    await yandexDelete(item.diskPath);
+    urlCache.delete(item.diskPath);
+    for (const f of item.files) urlCache.delete(f.diskPath);
+    items = items.filter(i => i.id !== id);
+    render();
+    showToast('Материал удалён');
+  } catch (e){ showToast('Ошибка удаления: ' + e.message); }
+  closeDeleteModal();
+}
+
+/* ==========================================================
+   12. ЗАГРУЗКА (с прогрессом)
+   ========================================================== */
+const uploadModal = document.getElementById('uploadModal');
+const uploadForm = document.getElementById('uploadForm');
+const upFile = document.getElementById('upFile');
+const upType = document.getElementById('upType');
+const filePreviews = document.getElementById('filePreviews');
+const uploadProgress = document.getElementById('uploadProgress');
+const uploadProgressFill = document.getElementById('uploadProgressFill');
+const uploadProgressText = document.getElementById('uploadProgressText');
+const uploadProgressHint = document.getElementById('uploadProgressHint');
+const uploadSubmitBtn = document.getElementById('uploadSubmitBtn');
+const cancelUploadBtn = document.getElementById('cancelUpload');
+
+let isUploading = false;
+
+/* === UI-хелперы === */
+function setUploadUI(loading){
+  uploadSubmitBtn.disabled = loading;
+  uploadSubmitBtn.classList.toggle('loading', loading);
+  uploadSubmitBtn.querySelector('.btn-label').textContent = loading ? 'Загрузка…' : 'Добавить';
+  cancelUploadBtn.disabled = loading;
+  document.getElementById('upTitle').disabled = loading;
+  document.getElementById('upComposer').disabled = loading;
+  upType.disabled = loading;
+  document.getElementById('upVisibility').disabled = loading;
+  upFile.disabled = loading;
+}
+function showUploadProgress(ratio, text, hint){
+  uploadProgress.hidden = false;
+  uploadProgressFill.style.width = Math.round(Math.max(0, Math.min(1, ratio)) * 100) + '%';
+  uploadProgressFill.style.background = '';
+  uploadProgressText.textContent = text;
+  uploadProgressText.classList.remove('error');
+  uploadProgressHint.textContent = hint || '';
+}
+function showUploadError(text, hint){
+  uploadProgress.hidden = false;
+  uploadProgressFill.style.width = '100%';
+  uploadProgressFill.style.background = 'var(--danger)';
+  uploadProgressText.textContent = text;
+  uploadProgressText.classList.add('error');
+  uploadProgressHint.textContent = hint || '';
+}
+function resetUploadProgress(){
+  uploadProgress.hidden = true;
+  uploadProgressFill.style.width = '0%';
+  uploadProgressFill.style.background = '';
+  uploadProgressText.textContent = '';
+  uploadProgressText.classList.remove('error');
+  uploadProgressHint.textContent = '';
+}
+
+/* === Открытие/закрытие === */
+document.getElementById('openUpload').addEventListener('click', () => {
+  uploadModal.classList.add('visible');
+  resetUploadProgress();
+});
+cancelUploadBtn.addEventListener('click', closeUpload);
+uploadModal.addEventListener('click', (e) => {
+  if (e.target === uploadModal && !isUploading) closeUpload();
+});
+
+function closeUpload(){
+  if (isUploading) return;
+  uploadModal.classList.remove('visible');
+  uploadForm.reset();
+  filePreviews.innerHTML = '';
+  resetUploadProgress();
+}
+
+/* === Превью выбранных файлов === */
+upFile.addEventListener('change', () => {
+  filePreviews.innerHTML = '';
+  const files = Array.from(upFile.files || []);
+  if (!files.length) return;
+  const hasAudio = files.some(f => fileKind(f) === 'audio');
+  const hasSheet = files.some(f => fileKind(f) === 'image' || fileKind(f) === 'pdf');
+  if (hasAudio && !hasSheet) upType.value = 'audio';
+  else if (hasSheet && !hasAudio) upType.value = 'sheet';
+
+  files.forEach(f => {
+    const kind = fileKind(f);
+    const chip = document.createElement('div');
+    chip.className = 'file-chip';
+    let thumb;
+    if (kind === 'image'){ thumb = `<img src="${URL.createObjectURL(f)}" alt="">`; }
+    else if (kind === 'pdf') thumb = `<span class="pdf-mini">PDF</span>`;
+    else thumb = `<span class="pdf-mini">♪</span>`;
+    chip.innerHTML = `${thumb}<span class="name">${esc(f.name)} · ${humanSize(f.size)}</span>`;
+    filePreviews.appendChild(chip);
+  });
+});
+
+/* === Submit === */
+uploadForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (isUploading) return;
+  if (!currentUser){ showToast('Сначала войдите'); return; }
+
+  const title = document.getElementById('upTitle').value.trim() || 'Без названия';
+  const composer = document.getElementById('upComposer').value.trim() || '';
+  const type = upType.value;
+  const visibility = document.getElementById('upVisibility').value;
+  const files = Array.from(upFile.files || []);
+  if (!files.length){ showToast('Выберите файлы'); return; }
+
+  isUploading = true;
+  setUploadUI(true);
+  resetUploadProgress();
+  showUploadProgress(0, 'Подготовка…', 'Не закрывайте окно, пока идёт загрузка.');
+
+  const safe = title.replace(/[\\/:*?"<>|]/g, '_').slice(0, 80);
+  const folderPath = `${currentUser.folderPath}/${safe}`;
+
+  try {
+    showUploadProgress(0, 'Создание папки материала…');
+    await yandexCreateFolder(folderPath);
+
+    const total = files.length;
+    const totalBytes = files.reduce((s, f) => s + f.size, 0);
+    let uploadedBytesBase = 0;
+
+    for (let i = 0; i < files.length; i++){
+      const f = files[i];
+      showUploadProgress(uploadedBytesBase / totalBytes, `Загрузка ${i + 1} из ${total}: ${f.name} — 0%`);
+
+      await yandexUploadFileWithProgress(
+        `${folderPath}/${f.name}`,
+        f,
+        (ratio, loaded, size) => {
+          const overall = (uploadedBytesBase + loaded) / totalBytes;
+          const pct = Math.round(ratio * 100);
+          showUploadProgress(
+            overall,
+            `Загрузка ${i + 1} из ${total}: ${f.name} — ${pct}% (${humanSize(loaded)} из ${humanSize(size)})`
+          );
+        }
+      );
+      uploadedBytesBase += f.size;
+      showUploadProgress(uploadedBytesBase / totalBytes, `Загрузка ${i + 1} из ${total}: ${f.name} — готово`);
+    }
+
+    showUploadProgress(1, 'Сохранение метаданных…');
+    await saveItemMeta(folderPath, {
+      title, composer, type, visibility,
+      createdAt: new Date().toISOString()
+    });
+
+    showUploadProgress(1, 'Обновление библиотеки…');
+    await loadItemsFromDisk();
+    render();
+    showToast('Материал загружен');
+    // Закрываем сразу после успеха
+    isUploading = false;
+    setUploadUI(false);
+    closeUpload();
+  } catch (err){
+    const msg = err.message || String(err);
+    let hint = 'Файл мог не загрузиться по нескольким причинам. Проверьте консоль (F12).';
+    if (/CORS|Failed to fetch|network|HTTP 0/i.test(msg)){
+      hint = 'Браузер блокирует прямую загрузку файлов на uploader.disk.yandex.net по CORS — нужен серверный прокси. Это ограничение браузера, не вашего кода.';
+    } else if (/401/i.test(msg)){
+      hint = 'Токен недействителен — возможно, истёк. Получите новый на oauth.yandex.ru.';
+    } else if (/403/i.test(msg)){
+      hint = 'Токену не хватает прав. Нужен scope cloud_api:disk.app_folder.';
+    }
+    showUploadError('Ошибка: ' + msg, hint);
+    showToast('Ошибка загрузки');
+    isUploading = false;
+    setUploadUI(false);
+  }
+});
+
+/* ==========================================================
+   13. ВХОД / ВЫХОД / АДМИН
+   ========================================================== */
+const loginScreen = document.getElementById('loginScreen');
+const loginCard = document.getElementById('loginCard');
+const loginForm = document.getElementById('loginForm');
+const loginError = document.getElementById('loginError');
+const app = document.getElementById('app');
+const adminToggle = document.getElementById('adminToggle');
+const adminPanel = document.getElementById('adminPanel');
+const userList = document.getElementById('userList');
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const login = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value.trim();
+  if (!login || !pass){ loginError.textContent = 'Введите логин и пароль'; return; }
+  loginError.textContent = 'Вход…';
+  try {
+    const user = await loginYandex(login, pass);
+    currentUser = user;
+    document.getElementById('userName').textContent = user.login;
+    document.getElementById('userAvatar').textContent = user.login.charAt(0).toUpperCase();
+    adminToggle.style.display = user.isAdmin ? 'flex' : 'none';
+    loginScreen.classList.add('hidden');
+    app.classList.add('visible');
+    loginError.textContent = '';
+    await loadItemsFromDisk();
+    render();
+  } catch (err){
+    loginError.textContent = err.message;
+    loginCard.classList.remove('shake');
+    void loginCard.offsetWidth;
+    loginCard.classList.add('shake');
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  if (isUploading) return;
+  stopPlayback(false);
+  currentUser = null;
+  items = [];
+  urlCache.clear();
+  app.classList.remove('visible');
+  loginScreen.classList.remove('hidden');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  loginError.textContent = '';
+  adminPanel.classList.remove('visible');
+});
+
+adminToggle.addEventListener('click', async () => {
+  const isVisible = adminPanel.classList.toggle('visible');
+  if (isVisible && currentUser && currentUser.isAdmin) await refreshUserList();
+});
+
+async function refreshUserList(){
+  userList.innerHTML = '<p class="modal-sub">Загрузка…</p>';
+  try {
+    const users = await adminListUsers();
+    userList.innerHTML = users.length
+      ? users.map(u => `<div class="user-row"><span class="login">${esc(u.login)}</span>
+          <div class="actions"><button class="btn-sm danger" data-del-user="${esc(u.folderPath)}">Удалить</button></div>
+        </div>`).join('')
+      : '<p class="modal-sub">Пользователей пока нет.</p>';
+    userList.querySelectorAll('[data-del-user]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Удалить пользователя и все его файлы?')) return;
+        try { await adminDeleteUser(btn.dataset.delUser); urlCache.clear(); showToast('Пользователь удалён'); await refreshUserList(); }
+        catch (e){ showToast('Ошибка: ' + e.message); }
+      });
+    });
+  } catch (e){
+    userList.innerHTML = `<p class="modal-sub" style="color:var(--danger)">Ошибка: ${esc(e.message)}</p>`;
+  }
+}
+
+document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!currentUser || !currentUser.isAdmin){ showToast('Только администратор'); return; }
+  const login = document.getElementById('newLogin').value.trim();
+  const pass = document.getElementById('newPass').value.trim();
+  if (!login || !pass){ showToast('Введите логин и пароль'); return; }
+  try {
+    await adminCreateUser(login, pass);
+    showToast(`Пользователь ${login} создан`);
+    document.getElementById('newLogin').value = '';
+    document.getElementById('newPass').value = '';
+    await refreshUserList();
+  } catch (e){ showToast('Ошибка: ' + e.message); }
+});
+
+document.querySelectorAll('.nav-item[data-filter]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    render();
+  });
+});
+searchInput.addEventListener('input', (e) => { searchQuery = e.target.value.trim(); render(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !isUploading){
+    uploadModal.classList.remove('visible');
+    closeDeleteModal();
+    adminPanel.classList.remove('visible');
+  }
+});
+</script>
+</body>
+</html>
